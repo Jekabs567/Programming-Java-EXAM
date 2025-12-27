@@ -15,11 +15,15 @@ public class Task {
 	
 	@Override
 	public String toString() {
-		return "Task" + id + ": " + title + " | Status: " + status + " | Priority: " + priority;
+		return "Task " + id + ": " + title + " | Status: " + status + " | Priority: " + priority;
 	}
 	
 	//getter
 	public int getId() {
 		return id;
+	}
+	
+	public void markCompleted() {
+		status = TaskStatus.COMPLETED;
 	}
 }

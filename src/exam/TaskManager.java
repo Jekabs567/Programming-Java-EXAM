@@ -34,4 +34,15 @@ public class TaskManager {
 			}
 		}
 	}
+	
+	public boolean markTaskCompleteById(int id) {
+		for (int i = 0; i<tasks.size(); i++) {
+			if (tasks.get(i).getId() == id) {
+				tasks.get(i).markCompleted();
+				return true;
+			}
+		}
+		return false;
+	}
+	
 }
