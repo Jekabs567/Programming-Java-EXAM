@@ -23,6 +23,14 @@ public class Task {
 		return id;
 	}
 	
+	public String getTitle() {
+	    return title;
+	}
+	
+	public Priority getPriority() {
+	    return priority;
+	}
+	
 	public void markCompleted() {
 		status = TaskStatus.COMPLETED;
 	}

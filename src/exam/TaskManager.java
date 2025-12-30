@@ -4,13 +4,14 @@ import java.util.*;
 
 public class TaskManager {
 	private ArrayList<Task> tasks;
-	
+	private int nextId = 1;
+
 	public TaskManager() {
 		this.tasks = new ArrayList<>();
 	}
 	
-	public void addTask(Task task) {
-		tasks.add(task);
+	public void addTask(String title, Priority priority) {
+	    tasks.add(new Task(nextId++, title, priority));
 	}
 	
 	public boolean removeTaskById(int id) { // dzēst uzdevumu pēc ID
@@ -64,6 +65,10 @@ public class TaskManager {
 			}
 		}
 		return result;
+	}
+	
+	public ArrayList<Task> getAllTasks() {
+	    return tasks;
 	}
 	
 }
