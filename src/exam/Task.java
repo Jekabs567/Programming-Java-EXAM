@@ -1,21 +1,30 @@
 package exam;
 
+import java.time.LocalDateTime;
+
 public class Task {
 	private int id;
 	private String title;
 	private TaskStatus status;
 	private Priority priority;
+	private LocalDateTime deadline;
 	
-	public Task(int id, String title, Priority priority) {
+	public Task(int id, String title, Priority priority, LocalDateTime deadline) { // konstruktors
 		this.id = id;
 		this.title = title;
 		this.priority = priority;
 		this.status = TaskStatus.ACTIVE;
+		this.deadline = deadline;
+	}
+	
+	public Task(int id, String title, Priority priority) { // konstruktora pārslogošana
+		this(id, title, priority, null);
 	}
 	
 	@Override
 	public String toString() {
-		return "Task " + id + ": " + title + " | Status: " + status + " | Priority: " + priority;
+		String dl = (deadline == null) ? "None": deadline.toString(); // different kind of "if" statement, means: if condition is true, use this; otherwise, use that. condition ? valueIfTrue : valueIfFalse
+		return "Task " + id + ": " + title + " | Status: " + status + " | Priority: " + priority + " | Deadline: " + dl;
 	}
 	
 	//getter
@@ -50,4 +59,15 @@ public class Task {
 	public TaskStatus getStatus() {
 		return status;
 	}
+	
+	public LocalDateTime getDeadline() {
+		return deadline;
+	}
+	
+	public void setDeadline(LocalDateTime deadline) {
+		this.deadline = deadline;
+	}
+
+	
+
 }

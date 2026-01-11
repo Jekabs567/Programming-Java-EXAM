@@ -4,6 +4,8 @@ import javax.swing.JOptionPane;
 import java.util.ArrayList;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class TaskUI {
 	
@@ -52,8 +54,8 @@ public class TaskUI {
 
                 default:
                     JOptionPane.showMessageDialog(null, "Invalid option!");
-            }
-        }
+            } 
+        }autoSave();
     }
 
     private Task chooseTaskByTitle(String message, ArrayList<Task> tasks) {
@@ -109,8 +111,20 @@ public class TaskUI {
         );
 
         if (priorityStr == null) return;
+        
+        String deadlineInput = JOptionPane.showInputDialog("Enter deadline (yyyy-MM-dd HH:mm) or leave empty");
+        LocalDateTime deadline = null;
+        if (deadlineInput !=null && !deadlineInput.isBlank()) { 
+        	try {
+        		DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        		deadline = LocalDateTime.parse(deadlineInput, format);
+        	}catch(Exception e) {
+        		JOptionPane.showMessageDialog(null, "Invalid date format!");
+        		return;
+        	}
+        }
 
-        manager.addTask(title, Priority.valueOf(priorityStr));
+        manager.addTask(title, Priority.valueOf(priorityStr), deadline);
         autoSave();
         JOptionPane.showMessageDialog(null, "Task added!");
        
@@ -152,12 +166,33 @@ public class TaskUI {
                 priorities,
                 task.getPriority().name()
         );
+        
+        String currentDeadlineStr = (task.getDeadline() == null) ? "": task.getDeadline().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        
+        String newDeadlineInput = JOptionPane.showInputDialog("New deadline (yyyy-MM-dd HH:mm), leave empty to remove deadline: ", currentDeadlineStr);
+        
+        if (newDeadlineInput !=null) {
+        	if (newDeadlineInput.isBlank()) {
+        		task.setDeadline(null);
+        	}
+        	else {
+        		try {
+        			DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        			LocalDateTime newDeadline = LocalDateTime.parse(newDeadlineInput, format);
+        			task.setDeadline(newDeadline);
+        		}catch (Exception e) {
+        			JOptionPane.showMessageDialog(null, "Invalid date format!");
+        			return;
+        		}
+        	}
+        }
+
 
         if (newPriority != null) {
             task.setPriority(Priority.valueOf(newPriority));
-            autoSave();
-        }
 
+        }
+        autoSave();
         JOptionPane.showMessageDialog(null, "Task updated!");
     }
 

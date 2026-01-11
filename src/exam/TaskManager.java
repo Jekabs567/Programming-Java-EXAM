@@ -2,6 +2,7 @@ package exam;
 
 import java.util.*;
 import java.io.*;
+import java.time.LocalDateTime;
 
 
 public class TaskManager {
@@ -14,6 +15,10 @@ public class TaskManager {
 	
 	public void addTask(String title, Priority priority) {
 	    tasks.add(new Task(nextId++, title, priority));
+	}
+	
+	public void addTask(String title, Priority priority, LocalDateTime deadline) {
+		tasks.add(new Task(nextId++, title, priority, deadline)); // overload
 	}
 	
 	public boolean removeTaskById(int id) { // dzēst uzdevumu pēc ID
@@ -76,11 +81,14 @@ public class TaskManager {
 	public void saveToFile(String filename) {
 	    try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
 	        for (Task t : tasks) {
+	        	String deadlineStr = (t.getDeadline() == null) ? "" : t.getDeadline().toString(); // different kind of "if" statement, means: if condition is true, use this; otherwise, use that. condition ? valueIfTrue : valueIfFals
+	        	
 	            writer.println(
 	                t.getId() + ";" +
 	                t.getTitle() + ";" +
 	                t.getStatus() + ";" +
-	                t.getPriority()
+	                t.getPriority() + ";" +
+	                deadlineStr
 	            );
 	        }
 	    } catch (IOException e) {
@@ -101,8 +109,14 @@ public class TaskManager {
 	            String title = parts[1];
 	            TaskStatus status = TaskStatus.valueOf(parts[2]);
 	            Priority priority = Priority.valueOf(parts[3]);
+	            
+	            LocalDateTime deadline = null;
+	            if (parts.length >= 5 && !parts[4].isBlank()) {
+	            	deadline = LocalDateTime.parse(parts[4]);
+	            }
 
-	            Task task = new Task(id, title, priority);
+
+	            Task task = new Task(id, title, priority, deadline);
 	            if (status == TaskStatus.COMPLETED) {
 	                task.markCompleted();
 	            }
