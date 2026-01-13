@@ -17,12 +17,12 @@ public class Task {
 		this.deadline = deadline;
 	}
 	
-	public Task(int id, String title, Priority priority) { // konstruktora pārslogošana
+	public Task(int id, String title, Priority priority) { // konstruktora pārslogošana, basically shortcut, izmanto lai izveidotu task bez deadline
 		this(id, title, priority, null);
 	}
 	
 	@Override
-	public String toString() {
+	public String toString() { // override aizvieto metodi no parent class. ja nav deadline, tad rāda "none." Savādāk rāda deadline tekstu.
 		String dl = (deadline == null) ? "None": deadline.toString(); // different kind of "if" statement, means: if condition is true, use this; otherwise, use that. condition ? valueIfTrue : valueIfFalse
 		return "Task " + id + ": " + title + " | Status: " + status + " | Priority: " + priority + " | Deadline: " + dl;
 	}

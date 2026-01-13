@@ -18,7 +18,7 @@ public class TaskManager {
 	}
 	
 	public void addTask(String title, Priority priority, LocalDateTime deadline) {
-		tasks.add(new Task(nextId++, title, priority, deadline)); // overload
+		tasks.add(new Task(nextId++, title, priority, deadline)); // overload, again, lai varetu veidot tasks bez un ar deadline. Lai nebūtu visur jāpadod null.
 	}
 	
 	public boolean removeTaskById(int id) { // dzēst uzdevumu pēc ID
@@ -50,11 +50,12 @@ public class TaskManager {
 	public void saveToFile(String filename) {
 	    try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
 	        for (Task t : tasks) {
-	        	String deadlineStr = (t.getDeadline() == null) ? "" : t.getDeadline().toString(); // different kind of "if" statement, means: if condition is true, use this; otherwise, use that. condition ? valueIfTrue : valueIfFals
-	        	
+	        	String safeTitle = escapeField(t.getTitle());
+	        	String deadlineStr = (t.getDeadline() == null) ? "" : t.getDeadline().toString(); // different kind of "if" statement, means: if condition is true, use this; otherwise, use that. condition ? valueIfTrue : valueIfFalse
+	        
 	            writer.println(
 	                t.getId() + ";" +
-	                t.getTitle() + ";" +
+	                safeTitle + ";" +
 	                t.getStatus() + ";" +
 	                t.getPriority() + ";" +
 	                deadlineStr
@@ -69,34 +70,79 @@ public class TaskManager {
 	    tasks.clear();
 	    nextId = 1;
 
-	    try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+	    try (BufferedReader reader = new BufferedReader(new FileReader(filename))) { // ievietots try catch blokā, lai nodrošinātu pret bojātiem failiem.
 	        String line;
 	        while ((line = reader.readLine()) != null) {
-	            String[] parts = line.split(";");
-
-	            int id = Integer.parseInt(parts[0]);
-	            String title = parts[1];
-	            TaskStatus status = TaskStatus.valueOf(parts[2]);
-	            Priority priority = Priority.valueOf(parts[3]);
+	        	if (line.isBlank()) continue;
+	            ArrayList<String> parts = splitLine(line);
+	            if(parts.size() < 4) continue;
 	            
-	            LocalDateTime deadline = null;
-	            if (parts.length >= 5 && !parts[4].isBlank()) {
-	            	deadline = LocalDateTime.parse(parts[4]);
+	            try {
+	            	int id = Integer.parseInt(parts.get(0));
+	            	String title = unescapeField(parts.get(1));
+	            	TaskStatus status = TaskStatus.valueOf(parts.get(2));
+	            	Priority priority = Priority.valueOf(parts.get(3));
+	            
+	            	LocalDateTime deadline = null;
+	            	if (parts.size() >= 5 && !parts.get(4).isBlank()) {
+	            		deadline = LocalDateTime.parse(parts.get(4));
+	            	}
+
+
+	            	Task task = new Task(id, title, priority, deadline);
+	            	if (status == TaskStatus.COMPLETED) {
+	            		task.markCompleted();
+	            	}
+	            	
+	            	tasks.add(task);
+	            	nextId = Math.max(nextId, id + 1);
+	            }catch (Exception e) {
+	            	continue;
 	            }
-
-
-	            Task task = new Task(id, title, priority, deadline);
-	            if (status == TaskStatus.COMPLETED) {
-	                task.markCompleted();
-	            }
-
-	            tasks.add(task);
-	            nextId = Math.max(nextId, id + 1);
 	        }
 	    } catch (IOException e) {
 	        System.out.println("Error loading file.");
 	    }
 	}
 
+	// escapeField aizsargā saturu
+	private String escapeField(String s) { // drošība pret nosaukumiem, kuros ir ; vai \\ vai \n.
+		s = s.replace("\\", "\\\\");
+		s = s.replace(";", "\\;");
+		s = s.replace("\n", "\\n");
+		return s;
+	}
 	
+	private String unescapeField(String s) { // atjauno orginālo tekstu pēc load.
+		s = s.replace("\\n", "\n");
+		s = s.replace("\\;", ";");
+		s = s.replace("\\\\", "\\");
+		return s;
+	}
+	
+	
+	// splitLine aizsargā struktūru
+	private ArrayList<String> splitLine(String line){ // \ ir "escape" signāls. ja šis parādās tekstā, tad jebkurš nākošais simbols ir aizsargāts.
+		ArrayList<String> parts = new ArrayList<>();
+		StringBuilder current = new StringBuilder();
+		boolean escaped = false; // vai iepriekšējais simbols bija "\"? false = parasta sadalīšana. true = nākošais simbols ir aizsargāts.
+		for (int i = 0; i < line.length(); i++) {
+			char ch = line.charAt(i);
+			if (escaped == true) {
+				current.append(ch);
+				escaped = false;
+			} else if (ch == '\\') {
+				current.append(ch);
+				escaped = true;
+			} else if (ch == ';') {
+				parts.add(current.toString());
+				current.setLength(0);
+			} else {
+				current.append(ch);
+			}
+		}
+		
+		parts.add(current.toString());
+		return parts;
+	}
 }

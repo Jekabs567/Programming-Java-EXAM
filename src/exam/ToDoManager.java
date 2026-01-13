@@ -11,8 +11,6 @@ public class ToDoManager {
 		
 	    TaskUI ui = new TaskUI(manager1);
 	    ui.start();
-		
-	    reminders.stop();
 
 	}
 

@@ -12,7 +12,7 @@ import javax.swing.SwingUtilities;
 
 public class Reminder {
 	private final TaskManager manager;
-	private final ScheduledExecutorService scheduler;
+	private final ScheduledExecutorService scheduler; // mainīgais kas satur background taimeri, kas ļauj kodam strādāt fonā
 	
 	private final long remindWithinMinutes;
 	
@@ -39,6 +39,7 @@ public class Reminder {
 	
 	private void checkDeadlines() {
 		LocalDateTime now = LocalDateTime.now();
+		String msg;
 		for (Task t : manager.getAllTasks()) {
 			if (t.getStatus() != TaskStatus.ACTIVE) { // skip ja uzdevums nav aktīvs
 				continue;
@@ -50,10 +51,14 @@ public class Reminder {
 			long minutesLeft = Duration.between(now, t.getDeadline()).toMinutes();
 			
 			if (minutesLeft <= remindWithinMinutes && !notifiedTaskIds.contains(t.getId())) {
-				showPopup("Deadline is approaching!\nTask: " + t.getTitle() + "\nMinutes Left: "+ minutesLeft);
+				if (minutesLeft < 0) {
+					msg = "OVERDUE by " + Math.abs(minutesLeft)+ " minutes\n"+ "Task: " + t.getTitle();
+				} else {
+					msg = "Due in " + minutesLeft + " minutes\n" + "Task: " + t.getTitle();
+				}
+				showPopup(msg);
 				notifiedTaskIds.add(t.getId());
 			}
-			
 			if (minutesLeft > remindWithinMinutes) {
 				notifiedTaskIds.remove(t.getId());
 			}
@@ -62,6 +67,6 @@ public class Reminder {
 	}
 	
 	private void showPopup (String message) {
-		SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, message, "Task reminder", JOptionPane.WARNING_MESSAGE));
+		SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(null, message, "Task reminder", JOptionPane.WARNING_MESSAGE)); // pasaka, lai Swing rāda popup logu UI "ceļā" \ thread, nevis background ceļā \ thread
 	} // () -> method() is a runnable, nozīmē "palaid šo kodu vēlāk"
 }
